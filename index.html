@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="نظام تقارير المهام اليومية - حساب تلقائي وتوزيع بياني مع الحفظ والتصدير إلى PDF و Excel ورسالة نصية" />
+  <meta name="description" content="نظام تقارير المهام اليومية - حفظ سحابي في Firebase وتوزيع بياني مع التصدير إلى PDF و Excel ورسالة نصية" />
   <title>نظام تقارير المهام اليومية</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231449c7'/%3E%3Cpath d='M14 28a26 26 0 0 1 36 0M21 36a17 17 0 0 1 22 0M27 43a8 8 0 0 1 10 0' stroke='%23fff' stroke-width='4.5' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='32' cy='50' r='3' fill='%23fff'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -49,7 +49,6 @@
       gap: 16px;
     }
 
-    /* البطاقة العلوية وشعار الواي فاي */
     .header-card {
       background: linear-gradient(135deg, #1650d8, #1042b8);
       color: #ffffff;
@@ -188,7 +187,6 @@
       transform: translateY(0);
     }
 
-    /* شريط الحفظ والأرشيف */
     .status-bar {
       display: flex;
       flex-wrap: wrap;
@@ -203,19 +201,41 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .save-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: #e6f4ea;
       color: #137333;
-      padding: 5px 12px;
+      padding: 5px 10px;
       border-radius: 999px;
       font-weight: 700;
       font-size: 12px;
+    }
+
+    .cloud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .cloud-badge.online {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .cloud-badge.error {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     .bar-btn {
@@ -253,7 +273,6 @@
       border-color: #fca5a5;
     }
 
-    /* تنبيه وضع الدمج */
     .merged-banner {
       display: none;
       background: #eff6ff;
@@ -294,7 +313,6 @@
       background: #dbeafe;
     }
 
-    /* بطاقات المهام */
     .task-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -398,7 +416,6 @@
       background: #eff6ff;
     }
 
-    /* بطاقة الملخص الإجمالي */
     .summary-card {
       background: #ffffff;
       border: 2px solid #dbeafe;
@@ -466,7 +483,6 @@
       color: #4b5563;
     }
 
-    /* بطاقة التوزيع البياني */
     .charts-card {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -565,7 +581,6 @@
       transition: width 0.35s ease;
     }
 
-    /* التذييل */
     .designer-footer {
       text-align: center;
       padding: 14px 10px 4px;
@@ -581,7 +596,6 @@
       font-weight: 800;
     }
 
-    /* النوافذ المنبثقة */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -710,7 +724,21 @@
       font-size: 14px;
       font-weight: 700;
       color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
+
+    .source-tag {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .source-cloud { background: #dbeafe; color: #1e40af; }
+    .source-local { background: #e5e7eb; color: #374151; }
 
     .archive-sub {
       font-size: 12px;
@@ -774,7 +802,6 @@
 <body>
 
   <div class="container">
-    <!-- البطاقة العلوية مع لوكو شبكة الواي فاي للإنترنت -->
     <header class="header-card">
       <div class="brand-row">
         <div class="wifi-logo" aria-hidden="true">
@@ -787,7 +814,7 @@
         </div>
         <div class="brand-text">
           <div class="brand-title">نظام تقارير المهام اليومية</div>
-          <div class="brand-sub">إدارة ومتابعة مهام الشبكة والإنترنت</div>
+          <div class="brand-sub">إدارة ومتابعة مهام الشبكة والإنترنت — حفظ سحابي</div>
         </div>
       </div>
 
@@ -840,13 +867,13 @@
       </div>
     </header>
 
-    <!-- شريط حالة الحفظ والأرشيف -->
     <div class="status-bar">
       <div class="status-left">
         <span class="save-badge" id="saveStatus">💾 محفوظ تلقائياً</span>
+        <span class="cloud-badge" id="cloudStatus">⏳ جاري الاتصال بالسحابة...</span>
       </div>
       <div class="status-right">
-        <button type="button" class="bar-btn archive-save" onclick="saveToArchive()">📥 حفظ في الأرشيف</button>
+        <button type="button" class="bar-btn archive-save" onclick="saveToArchive()">☁️ حفظ في السحابة والأرشيف</button>
         <button type="button" class="bar-btn archive-open" onclick="openArchiveModal()">
           📚 الأرشيف (<span id="archiveCount">0</span>)
         </button>
@@ -854,7 +881,6 @@
       </div>
     </div>
 
-    <!-- تنبيه وضع الدمج -->
     <div class="merged-banner" id="mergedBanner">
       <span>🔗 وضع التقرير المدمج: الأرقام المعروضة هي مجموع (صباحي + مسائي) تلقائياً.</span>
       <div class="merged-quick-btns">
@@ -863,7 +889,6 @@
       </div>
     </div>
 
-    <!-- 1. مهام الصيانة -->
     <section class="task-card" data-section="maintenance">
       <div class="task-header">
         <div class="task-title">🔧 مهام الصيانة</div>
@@ -885,7 +910,6 @@
       </div>
     </section>
 
-    <!-- 2. مهام النصب -->
     <section class="task-card" data-section="install">
       <div class="task-header">
         <div class="task-title">🏗️ مهام النصب</div>
@@ -907,7 +931,6 @@
       </div>
     </section>
 
-    <!-- 3. مهام طلبات التجديد -->
     <section class="task-card" data-section="renewal">
       <div class="task-header">
         <div class="task-title">🔄 مهام طلبات التجديد</div>
@@ -929,7 +952,6 @@
       </div>
     </section>
 
-    <!-- 4. مهام الجودة -->
     <section class="task-card">
       <div class="task-header">
         <div class="task-title">✅ مهام الجودة</div>
@@ -940,7 +962,6 @@
       </div>
     </section>
 
-    <!-- 5. مهام التصفية -->
     <section class="task-card">
       <div class="task-header">
         <div class="task-title">📦 مهام التصفية</div>
@@ -951,7 +972,6 @@
       </div>
     </section>
 
-    <!-- بطاقة المجموع الإجمالي العام -->
     <section class="summary-card">
       <div class="summary-title">
         <span>📊 الإجمالي العام لجميع المهام</span>
@@ -982,7 +1002,6 @@
       </div>
     </section>
 
-    <!-- بطاقة التوزيع البياني للنتائج -->
     <section class="charts-card">
       <div class="charts-title">
         <span>📈 التوزيع البياني للنتائج</span>
@@ -990,7 +1009,6 @@
       </div>
 
       <div class="charts-grid">
-        <!-- الرسم الدائري حسب الحالة -->
         <div class="donut-box">
           <svg viewBox="0 0 180 180" width="160" height="160" id="donutSvg">
             <circle cx="90" cy="90" r="64" fill="none" stroke="#e5e7eb" stroke-width="22" />
@@ -998,22 +1016,18 @@
             <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="800" fill="#111827" id="donutCenterTotal">0</text>
             <text x="90" y="108" text-anchor="middle" font-size="12" font-weight="700" fill="#6b7280">إجمالي المهام</text>
           </svg>
-
           <div class="donut-legend" id="donutLegend"></div>
         </div>
 
-        <!-- الرسم بالأعمدة حسب الأقسام -->
         <div class="bars-box" id="barsChart"></div>
       </div>
     </section>
 
-    <!-- توقيع المصمم في الأسفل -->
     <footer class="designer-footer">
       by <span>Designer anmar</span>
     </footer>
   </div>
 
-  <!-- نافذة الرسالة النصية -->
   <div class="modal-overlay" id="textModal">
     <div class="modal">
       <div class="modal-header">
@@ -1029,11 +1043,10 @@
     </div>
   </div>
 
-  <!-- نافذة الأرشيف -->
   <div class="modal-overlay" id="archiveModal">
     <div class="modal">
       <div class="modal-header">
-        <span>📚 سجل التقارير المحفوظة (الأرشيف)</span>
+        <span>📚 الأرشيف السحابي والمحلي</span>
         <button class="close-modal" onclick="closeArchiveModal()">×</button>
       </div>
       <div class="archive-controls">
@@ -1064,7 +1077,10 @@
     const qualityEl = document.getElementById('input-quality');
     const clearanceEl = document.getElementById('input-clearance');
     const saveBadge = document.getElementById('saveStatus');
+    const cloudBadge = document.getElementById('cloudStatus');
     const mergedBanner = document.getElementById('mergedBanner');
+
+    let cloudArchive = [];
 
     function createEmptyShiftData() {
       return {
@@ -1453,8 +1469,7 @@
       saveDraft();
     }
 
-    // ==================== الأرشيف ====================
-    function getArchive() {
+    function getLocalArchive() {
       try {
         return JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || [];
       } catch {
@@ -1462,45 +1477,70 @@
       }
     }
 
-    function setArchive(list) {
+    function setLocalArchive(list) {
       localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list));
       updateArchiveCount();
+    }
+
+    function getArchive() {
+      const localList = getLocalArchive();
+      const cloudClientIds = new Set(cloudArchive.map(c => c.clientId).filter(Boolean));
+      const localOnly = localList
+        .filter(item => !cloudClientIds.has(item.id))
+        .map(item => ({ ...item, isCloud: false }));
+      return [...cloudArchive, ...localOnly];
     }
 
     function updateArchiveCount() {
       document.getElementById('archiveCount').textContent = getArchive().length;
     }
 
-    function upsertArchiveRecord(d) {
-      const archive = getArchive();
-      const top = archive[0];
-      const isDuplicateTop = top &&
-        top.date === d.date &&
-        top.shift === d.shift &&
-        top.employee === d.employee &&
-        top.grandTotal === d.grandTotal &&
-        top.totalDone === d.totalDone &&
-        top.totalCanceled === d.totalCanceled &&
-        top.totalPostponed === d.totalPostponed;
+    function isSameReportData(a, b) {
+      return a && b &&
+        a.date === b.date &&
+        a.shift === b.shift &&
+        a.employee === b.employee &&
+        a.grandTotal === b.grandTotal &&
+        a.totalDone === b.totalDone &&
+        a.totalCanceled === b.totalCanceled &&
+        a.totalPostponed === b.totalPostponed;
+    }
 
-      if (isDuplicateTop) {
-        top.savedAt = new Date().toLocaleString('ar-EG');
-        setArchive(archive);
+    async function upsertArchiveRecord(d) {
+      const localList = getLocalArchive();
+      const topLocal = localList[0];
+      let clientId = Date.now().toString();
+
+      if (isSameReportData(topLocal, d)) {
+        topLocal.savedAt = new Date().toLocaleString('ar-EG');
+        clientId = topLocal.id;
+        setLocalArchive(localList);
       } else {
         const record = {
           ...d,
-          id: Date.now().toString(),
+          id: clientId,
           savedAt: new Date().toLocaleString('ar-EG')
         };
-        archive.unshift(record);
-        setArchive(archive);
+        localList.unshift(record);
+        setLocalArchive(localList);
+      }
+
+      if (window.firebaseCloud) {
+        const topCloud = cloudArchive[0];
+        if (!isSameReportData(topCloud, d)) {
+          await window.firebaseCloud.saveReport({
+            ...d,
+            clientId,
+            savedAt: new Date().toLocaleString('ar-EG')
+          });
+        }
       }
     }
 
-    function saveToArchive() {
+    async function saveToArchive() {
       const d = collectData();
-      upsertArchiveRecord(d);
-      alert(`تم حفظ تقرير "${d.employee || 'بدون اسم'}" (${d.shift}) بتاريخ (${d.date || '-'}) في الأرشيف ✅`);
+      await upsertArchiveRecord(d);
+      alert(`تم حفظ تقرير "${d.employee || 'بدون اسم'}" (${d.shift}) بتاريخ (${d.date || '-'}) في السحابة والأرشيف ✅`);
     }
 
     function openArchiveModal() {
@@ -1534,7 +1574,12 @@
         <div class="archive-item">
           <div class="archive-item-top">
             <div>
-              <div class="archive-meta">👤 ${escapeHtml(item.employee || 'موظف غير محدد')}</div>
+              <div class="archive-meta">
+                <span>👤 ${escapeHtml(item.employee || 'موظف غير محدد')}</span>
+                <span class="source-tag ${item.isCloud ? 'source-cloud' : 'source-local'}">
+                  ${item.isCloud ? '☁️ سحابي' : '💾 محلي'}
+                </span>
+              </div>
               <div class="archive-sub">📅 ${escapeHtml(item.date || '-')} | ${escapeHtml(item.day)} | 🕒 ${escapeHtml(item.shift)}</div>
               <div class="archive-sub">منجزة: ${item.totalDone} • ملغية: ${item.totalCanceled} • مؤجلة: ${item.totalPostponed} • الجودة/التصفية: ${(item.quality || 0) + (item.clearance || 0)}</div>
             </div>
@@ -1610,14 +1655,30 @@
       document.getElementById('textModal').classList.add('open');
     }
 
-    function deleteFromArchive(id) {
-      if (!confirm('هل تريد حذف هذا التقرير من الأرشيف؟')) return;
-      const updated = getArchive().filter(r => r.id !== id);
-      setArchive(updated);
+    async function deleteFromArchive(id) {
+      if (!confirm('هل تريد حذف هذا التقرير من السحابة والأرشيف؟')) return;
+      const target = getArchive().find(r => r.id === id);
+      if (target && target.cloudId && window.firebaseCloud) {
+        await window.firebaseCloud.deleteReport(target.cloudId);
+      }
+      const updatedLocal = getLocalArchive().filter(r => r.id !== id && (!target || r.id !== target.clientId));
+      setLocalArchive(updatedLocal);
       renderArchiveList();
     }
 
-    // ==================== الرسالة النصية ====================
+    window.onCloudArchiveUpdate = (list) => {
+      cloudArchive = list;
+      updateArchiveCount();
+      if (document.getElementById('archiveModal').classList.contains('open')) {
+        renderArchiveList();
+      }
+    };
+
+    window.setCloudStatus = (text, state) => {
+      cloudBadge.textContent = text;
+      cloudBadge.className = 'cloud-badge' + (state ? ` ${state}` : '');
+    };
+
     function formatTextReport(d) {
       const mergedLine = d.isMerged || d.shift === 'صباحي مع مسائي'
         ? `\n☀️ إجمالي الصباحي: ${d.morningTotal ?? '-'} | 🌆 إجمالي المسائي: ${d.eveningTotal ?? '-'}`
@@ -1681,7 +1742,6 @@
       triggerDownload(blob, `تقرير_المهام_${d.date || 'اليوم'}.txt`);
     }
 
-    // ==================== محرك Excel (.xlsx) متكامل ====================
     const CRC_TABLE = (() => {
       const t = new Uint32Array(256);
       for (let i = 0; i < 256; i++) {
@@ -1943,12 +2003,12 @@
       writeExcelFile('تقرير المهام', rows, `تقرير_المهام_${safeDate}${safeEmp}.xlsx`);
     }
 
-    function saveAndExportExcel() {
+    async function saveAndExportExcel() {
       saveDraft();
       const d = collectData();
-      upsertArchiveRecord(d);
+      await upsertArchiveRecord(d);
       downloadSingleReportExcel(d);
-      showStatusMsg('✅ تم حفظ التقرير وتنزيل Excel');
+      showStatusMsg('✅ تم الحفظ وتنزيل Excel');
     }
 
     function exportAllArchiveExcel() {
@@ -1981,7 +2041,6 @@
       writeExcelFile('أرشيف التقارير', rows, 'أرشيف_التقارير_الشامل.xlsx');
     }
 
-    // ==================== مولّد PDF مدمج مع التوزيع البياني ====================
     function drawRoundedRect(ctx, x, y, w, h, r) {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
@@ -2066,12 +2125,10 @@
       drawRoundedRect(ctx, 40, 40, W - 80, H - 80, 24);
       ctx.stroke();
 
-      // الترويسة الزرقاء مع شعار الواي فاي
       ctx.fillStyle = '#1449c7';
       drawRoundedRect(ctx, 64, 64, W - 128, 184, 18);
       ctx.fill();
 
-      // رسم أيقونة الواي فاي على اليمين
       const logoX = W - 134;
       const logoY = 92;
       ctx.fillStyle = 'rgba(255,255,255,0.18)';
@@ -2105,7 +2162,6 @@
       ctx.fillText(`الفترة: ${d.shift || '-'}`, W - 96, 214);
       ctx.fillText(`الموظف: ${d.employee || 'غير محدد'}`, W - 540, 214);
 
-      // الجدول
       const tableX = 64;
       const tableY = 276;
       const colWidths = [185, 185, 185, 185, 372];
@@ -2224,7 +2280,6 @@
       ctx.font = '800 26px Cairo, Tahoma, Arial, sans-serif';
       ctx.fillText(String(d.grandTotal), colCenters[0], footY + rowH / 2);
 
-      // بطاقات الملخص
       const cardsY = footY + rowH + 28;
       const cardGap = 18;
       const cardW = (totalW - cardGap * 3) / 4;
@@ -2276,7 +2331,6 @@
         nextY += 92;
       }
 
-      // قسم التوزيع البياني في PDF
       ctx.fillStyle = '#f9fafb';
       drawRoundedRect(ctx, tableX, nextY, totalW, 310, 16);
       ctx.fill();
@@ -2324,7 +2378,6 @@
         }
       });
 
-      // تذييل الصفحة وتوقيع المصمم
       ctx.textAlign = 'center';
       ctx.fillStyle = '#64748b';
       ctx.font = '600 17px Cairo, Tahoma, Arial, sans-serif';
@@ -2351,7 +2404,7 @@
         const safeEmp = d.employee ? `_${d.employee.replace(/[\\/:*?"<>|]/g, '')}` : '';
         const safeDate = (d.date || 'اليوم').replace(/[\\/:*?"<>|]/g, '-');
         triggerDownload(pdfBlob, `تقرير_المهام_${safeDate}${safeEmp}.pdf`);
-        showStatusMsg('✅ تم حفظ التقرير وتنزيل PDF');
+        showStatusMsg('✅ تم الحفظ وتنزيل PDF');
       } catch (err) {
         console.error(err);
         alert('حدث خطأ أثناء إنشاء ملف PDF.');
@@ -2361,11 +2414,90 @@
     async function saveAndExportPDF() {
       saveDraft();
       const d = collectData();
-      upsertArchiveRecord(d);
+      await upsertArchiveRecord(d);
       await downloadReportPDF(d);
     }
 
     loadDraft();
+  </script>
+
+  <!-- ربط سحابة Firebase Realtime Database -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      remove,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7bk-waBC8BN16BOV8O-2L6HX_EFB5-z4",
+      authDomain: "tasks-report-766ea.firebaseapp.com",
+      databaseURL: "https://tasks-report-766ea-default-rtdb.firebaseio.com",
+      projectId: "tasks-report-766ea",
+      storageBucket: "tasks-report-766ea.firebasestorage.app",
+      messagingSenderId: "968109111302",
+      appId: "1:968109111302:web:eb296e470daad873eeab87",
+      measurementId: "G-9DE8929VF8"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const reportsRef = ref(db, "reports");
+
+      window.firebaseCloud = {
+        async saveReport(data) {
+          try {
+            const newRef = push(reportsRef);
+            await set(newRef, {
+              ...data,
+              createdAtMs: Date.now()
+            });
+            window.setCloudStatus("☁️ محفوظ ومتصل بالسحابة", "online");
+          } catch (err) {
+            console.error("Cloud save error:", err);
+            window.setCloudStatus("⚠️ تعذر الحفظ السحابي", "error");
+          }
+        },
+        async deleteReport(cloudId) {
+          try {
+            await remove(ref(db, `reports/${cloudId}`));
+          } catch (err) {
+            console.error("Cloud delete error:", err);
+          }
+        }
+      };
+
+      onValue(
+        reportsRef,
+        (snapshot) => {
+          const list = [];
+          snapshot.forEach((childSnap) => {
+            const data = childSnap.val();
+            list.push({
+              ...data,
+              id: `cloud_${childSnap.key}`,
+              cloudId: childSnap.key,
+              isCloud: true
+            });
+          });
+          list.sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+          window.onCloudArchiveUpdate(list);
+          window.setCloudStatus("☁️ متصل بالسحابة (Firebase)", "online");
+        },
+        (err) => {
+          console.warn("Realtime DB listener error:", err);
+          window.setCloudStatus("⚠️ تأكد من صلاحيات Rules في Firebase", "error");
+        }
+      );
+    } catch (e) {
+      console.error("Firebase init failed:", e);
+      window.setCloudStatus("⚠️ وضع محلي (بدون اتصال سحابي)", "error");
+    }
   </script>
 </body>
 </html>
